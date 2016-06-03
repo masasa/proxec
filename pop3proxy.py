@@ -84,7 +84,7 @@ class POP3Proxy(object):
 
 
 def main():
-    server = POP3Proxy('0.0.0.0', 20020, "127.0.0.1", 9999) #"#"mail.webfaction.com", 110)
+    server = POP3Proxy('0.0.0.0', 20020, "mail.webfaction.com", 110)
 
     try:
         server.loop()
