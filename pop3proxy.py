@@ -18,6 +18,7 @@ class POP3Proxy(object):
 
         self.clients = {}
 
+
     def register(self, sock, client):
         self.clients[sock] = client
 

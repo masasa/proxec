@@ -1,12 +1,24 @@
+from hashlib import sha256
+
 
 class Detection(object):
     def __init__(self):
         pass
 
-    def detect(self, buffer):
+    def is_malicious(self, file_content):
+        raise NotImplementedError()
+
+
+class Blacklist(Detection):
+    def __init__(self, hashes):
         """
-        Returns a list of
-        :param buffer:
-        :return:
+        :param hashes: List of SHA256 Hashes
         """
-        pass
+        self._hashes = hashes
+
+    def is_malicious(self, file_content):
+        file_hash = sha256(file_content).hexdigest()
+        if file_hash in self._hashes:
+            return True
+        return False
+
