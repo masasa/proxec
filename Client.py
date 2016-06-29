@@ -89,7 +89,7 @@ class Client(object):
                 new_payloads.append(attachment)
                 continue
 
-            print '>>> Applying detectors'
+            print '>>> Applying detectors (%r)' % (attachment.get_content_type(),)
             # Apply detectors
             if any(detector.is_malicious(file_content) for detector in DETECTORS):
                 continue
