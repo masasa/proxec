@@ -1,5 +1,6 @@
 import socket
 import select
+import argparse
 from client import Client
 
 
@@ -17,7 +18,6 @@ class POP3Proxy(object):
         self.server.listen(200)
 
         self.clients = {}
-
 
     def register(self, sock, client):
         self.clients[sock] = client
@@ -49,13 +49,23 @@ class POP3Proxy(object):
         self.clients[sock].handle_ready(sock)
 
 
-def main():
+def run_server(listen_ip, listen_port, dest, dest_port):
     server = POP3Proxy('0.0.0.0', 20020, "mail.webfaction.com", 110)
 
     try:
         server.loop()
     except KeyboardInterrupt:
         print "Ctrl C - Stopping server. Bye Bye"
+
+
+def main():
+    parser = argparse.ArgumentParser(description='POP3 Security Layer proxy')
+    parser.add_argument('destination', help='destination to forward packets (pop3 server)')
+    parser.add_argument('--port', help='destination port (default: 110)', type=int, default=110)
+    parser.add_argument('--listen', help='listening ip', default="0.0.0.0")
+    parser.add_argument('--listen-port', help='listening port', default=20020, type=int)
+
+    args = parser.parse_args()
 
 
 if __name__ == '__main__':

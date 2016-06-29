@@ -2,6 +2,7 @@ from hashlib import sha256
 from detector_cshash import calculate_cs_hash
 import pefile, peutils
 
+
 class Detection(object):
     error_message = ""
 
