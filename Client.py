@@ -1,5 +1,6 @@
 import socket
 import email
+from settings import DETECTORS
 
 
 class ClientState(object):
@@ -45,47 +46,56 @@ class Client(object):
             self.handle_response(sock, data)
 
     def handle_response(self, sock, data):
-        # print "[Server -> Client] " + data
-        self.sock.send(data)
-
+        print "[Server -> Client] " + repr(data)
         # Incoming response
         if not data.startswith("+OK"):
+            self.sock.send(data)
             return
 
         if self.state != ClientState.Retrieve:
+            self.sock.send(data)
             return
 
         # Make sure we received all data (read until '.')
-        print "[Server -> Client] ... waiting for data ..."
         while not data.endswith(".\r\n"):
             data = data + sock.recv(1000)
-        print "[Server -> Client] ... DONE! ..."
+
+        # Extract header and mail
+        header, eml_data = data.split("\r\n", 1)
+        eml_data = eml_data[:eml_data.rfind(".\r\n")]
 
         print "[Server -> Client] Searching for attachments.... "
-        self.state = ClientState.Ignore
-        msg_data = data[data.find("\r\n")+2:]
-        msg = email.message_from_string(msg_data)
+
+        msg = email.message_from_string(eml_data)
+
         payload = msg.get_payload()
         if len(payload) > 0:
-            print "[Server -> Client] %d Attachments Found" % (len(payload),)
-            self.is_valid_payload(payload)
-        else:
-            print "[Server -> Client] .. not found: " + repr(msg_data)
+            print "[Server -> Client] %d payloads found" % (len(payload),)
+            msg.set_payload(self.process_payload(payload))
 
-    def is_valid_payload(self, payloads):
+        # Send data
+        new_data = msg.as_string(unixfrom=True)
+        self.sock.send("+OK %d octets\r\n%s.\r\n" % (len(new_data), new_data))
+        # self.sock.send(data)
+        self.state = ClientState.Ignore
+
+    def process_payload(self, payloads):
+        new_payloads = []
         for attachment in payloads:
             file_content = attachment.get_payload(decode=True)
 
             # If payload is an email or not a file
             if file_content is None:
+                new_payloads.append(attachment)
                 continue
 
+            print '>>> Applying detectors'
             # Apply detectors
-            pass
+            if any(detector.is_malicious(file_content) for detector in DETECTORS):
+                continue
+            new_payloads.append(attachment)
 
-        return True
-
-
+        return new_payloads
 
     def handle_command(self, sock, data):
         print "[Client -> Server] " + data

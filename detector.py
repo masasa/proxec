@@ -22,8 +22,8 @@ class Blacklist(Detection):
 
     def is_malicious(self, file_content):
         file_hash = sha256(file_content).hexdigest()
-        print "$$ (%d) %r" % (len(file_content), file_content)
         if file_hash in self._hashes:
+            print "[Detector] Blacklist attachment found: %s" % (file_hash,)
             return True
         return False
 
