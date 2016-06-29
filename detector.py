@@ -51,7 +51,7 @@ class CSBlacklist(Detection):
 
 class EntropyDetect(Detection):
     """
-    Code section black list
+    Detect packed sections based on entropy
     """
     error_message = "File entropy too high - a potential compressed/encrypted sections found."
 
@@ -62,14 +62,14 @@ class EntropyDetect(Detection):
             return False
 
         # peutils implements entropy check
-        return peutils.is_probably_packed()
+        return peutils.is_probably_packed(pe)
 
 
 class PEiDComparison(Detection):
     """
     Code section black list
     """
-    error_message = "File contains a blacklisted Code-Section (.text)"
+    error_message = "File is PEiD blacklisted"
 
     def __init__(self, signature_files):
         """
@@ -89,5 +89,44 @@ class PEiDComparison(Detection):
             if matches is not None:
                 print "[Detector] PEiD Signatures matched: %r" % (matches,)
                 return True
+
+        return False
+
+
+class APIDetection(Detection):
+    """
+    Detect APIs in a PEfile
+    """
+    error_message = "File contains a malicious APIs"
+
+    def __init__(self, malicious_api, threshold):
+        """
+
+        :param malicious_api: List of API functions
+        :param threshold: How many APIs shuold appear from list in order to return true
+        """
+        self._mal_api = set(malicious_api)
+        self._threshold = threshold
+
+    def is_malicious(self, file_content):
+        try:
+            pe = pefile.PE(data=file_content)
+        except pefile.PEFormatError:
+            return False
+
+        import_functions = []
+
+        pe.parse_data_directories()
+
+        # Collect import functions
+        for entry in pe.DIRECTORY_ENTRY_IMPORT:
+            print entry.dll
+            for imp in entry.imports:
+                import_functions.append(imp.name)
+
+        # Match known APIs
+        if len(set(import_functions).intersection(self._mal_api)) > self._threshold:
+            print '[Detector] API Detector blocked attachment: %r' % (set(import_functions).intersection(self._mal_api),)
+            return True
 
         return False
