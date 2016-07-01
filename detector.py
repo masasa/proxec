@@ -66,7 +66,11 @@ class EntropyDetect(Detection):
             return False
 
         # peutils implements entropy check
-        return peutils.is_probably_packed(pe)
+        if peutils.is_probably_packed(pe) is True:
+            print "[Detector] File entropy too high - a potential compressed/encrypted sections found"
+            return True
+
+        return False
 
 
 class PEiDComparison(Detection):

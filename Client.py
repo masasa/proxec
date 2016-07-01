@@ -46,7 +46,7 @@ class Client(object):
             self.handle_response(sock, data)
 
     def handle_response(self, sock, data):
-        print "[Server -> Client] " + repr(data)
+        # print "[Server -> Client] " + repr(data)
         # Incoming response
         if not data.startswith("+OK"):
             self.sock.send(data)
@@ -69,7 +69,7 @@ class Client(object):
         msg = email.message_from_string(eml_data)
 
         payload = msg.get_payload()
-        if len(payload) > 0:
+        if (type(payload) != str) and (len(payload) > 0):
             print "[Server -> Client] %d payloads found" % (len(payload),)
             msg.set_payload(self.process_payload(payload))
 
@@ -98,9 +98,9 @@ class Client(object):
         return new_payloads
 
     def handle_command(self, sock, data):
-        print "[Client -> Server] " + data
+        # print "[Client -> Server] " + data
         self.sock_pop3.send(data)
         # If retrieve message
         if data.startswith("RETR"):
-            print "[Client -> Server] ## RETR ##"
+            # print "[Client -> Server] ## RETR ##"
             self.state = ClientState.Retrieve
