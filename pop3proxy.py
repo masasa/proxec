@@ -4,6 +4,7 @@ import argparse
 from client import Client
 
 
+# Amount of users that can wait in line
 LISTEN_BACKLOG = 200
 
 
@@ -20,19 +21,32 @@ class POP3Proxy(object):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.bind((host, port))
-
-        # Amount of users that can wait in line
         self.server.listen(LISTEN_BACKLOG)
 
+        # Connected clients dictionary
         self.clients = {}
 
     def register(self, sock, client):
+        """
+        Register a new client
+        Args:
+            sock: client socket
+            client: Client() object that represents the client
+        """
         self.clients[sock] = client
 
     def unregister(self, sock):
+        """
+        Unregister a client socket
+        Args:
+            sock: client socket
+        """
         del self.clients[sock]
 
     def loop(self):
+        """
+        Server main loop (handle new clients and handle traffic)
+        """
         while True:
             input_ready, output_ready, except_ready = select.select([self.server] + self.clients.keys(), [], [])
 
@@ -41,18 +55,22 @@ class POP3Proxy(object):
 
                 # Case: Accept
                 if sock is self.server:
-                    self.handle_accept()
+                    self._handle_accept()
                     continue
 
                 # Case: Socket related
-                self.handle_ready(sock)
+                self._handle_ready(sock)
 
-    def handle_accept(self):
+    def _handle_accept(self):
         sock, addr = self.server.accept()
         print '>> New connection from: %s:%d' % addr
+        # client will register itself
         Client(self, sock, addr, self._dest_host, self._dest_port)
 
-    def handle_ready(self, sock):
+    def _handle_ready(self, sock):
+        """
+        Data is ready to be read from socket
+        """
         self.clients[sock].handle_ready(sock)
 
 
