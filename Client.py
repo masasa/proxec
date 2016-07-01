@@ -104,4 +104,3 @@ class Client(object):
         if data.startswith("RETR"):
             print "[Client -> Server] ## RETR ##"
             self.state = ClientState.Retrieve
-

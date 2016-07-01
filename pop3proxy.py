@@ -4,7 +4,14 @@ import argparse
 from client import Client
 
 
+LISTEN_BACKLOG = 200
+
+
 class POP3Proxy(object):
+    """
+    Main POP3 Proxy server.
+    This server utilizes Reactor design pattern to handle multiple clients in a single process.
+    """
     def __init__(self, host, port, dest_host, dest_port):
         self._dest_host = dest_host
         self._dest_port = dest_port
@@ -15,7 +22,7 @@ class POP3Proxy(object):
         self.server.bind((host, port))
 
         # Amount of users that can wait in line
-        self.server.listen(200)
+        self.server.listen(LISTEN_BACKLOG)
 
         self.clients = {}
 
@@ -50,7 +57,10 @@ class POP3Proxy(object):
 
 
 def run_server(listen_ip, listen_port, dest, dest_port):
-    server = POP3Proxy('0.0.0.0', 20020, "mail.webfaction.com", 110)
+    print ">> Starting Proxy security layer"
+    print ">>      listening on: %s:%d   forwarding traffic to: %s:%d" % (listen_ip, listen_port, dest, dest_port)
+
+    server = POP3Proxy(listen_ip, listen_port, dest, dest_port)
 
     try:
         server.loop()
@@ -66,7 +76,7 @@ def main():
     parser.add_argument('--listen-port', help='listening port', default=20020, type=int)
 
     args = parser.parse_args()
-
+    run_server(args.listen, args.listen_port, args.destination, args.port)
 
 if __name__ == '__main__':
     main()

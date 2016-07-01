@@ -14,6 +14,9 @@ class Detection(object):
 
 
 class Blacklist(Detection):
+    """
+    Blacklist of SHA256 hashes of files
+    """
     error_message = "File was blacklisted"
 
     def __init__(self, hashes):
@@ -121,7 +124,6 @@ class APIDetection(Detection):
 
         # Collect import functions
         for entry in pe.DIRECTORY_ENTRY_IMPORT:
-            print entry.dll
             for imp in entry.imports:
                 import_functions.append(imp.name)
 
