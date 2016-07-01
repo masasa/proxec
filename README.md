@@ -20,3 +20,5 @@ client.py
 settings.py
     Settings files
 
+peiddb.txt
+    PEiD Database snapshot from: http://handlers.sans.org/jclausing/userdb.txt
